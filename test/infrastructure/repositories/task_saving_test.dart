@@ -1,13 +1,24 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:todo/domain/entities/task_entity.dart';
 
-class TaskSaving {
+abstract class ITaskSaving {
+  void save({required String title, String? description});
+  void updateStatus({required int id});
+  void updateTitle(int id, {required String name});
+  void updateDescription(int id, {required String description});
+  void remove(int id);
+  List<TaskEntity> listen();
+}
+
+class TaskSaving implements ITaskSaving{
   List<TaskEntity> db = [];
 
-  void save({required title, required description}) {
+  @override
+  void save({required String title, String? description}) {
     if (title.trim().isEmpty) throw Exception("O título não pode ser vazio");
-    if (description.trim().isEmpty) throw Exception("A descrição não pode ser vazia");
-
+    if(description is String){
+      if (description.trim().isEmpty) throw Exception("A descrição não pode ser vazia");
+    }
     if (title.length > 20) throw Exception("O título não pode ter mais de 20 caracteres");
 
     db.add(
@@ -21,6 +32,7 @@ class TaskSaving {
     );
   }
 
+  @override
   void updateStatus({required int id}) {
     final task = db
         .firstWhere((element) => element.id == id)
@@ -29,6 +41,7 @@ class TaskSaving {
     db.add(task);
   }
 
+  @override
   void updateTitle(int id, {required String name}) {
     final oldTask = db.firstWhere((element) => element.id == id);
 
@@ -38,6 +51,7 @@ class TaskSaving {
     db.add(task);
   }
 
+  @override
   void updateDescription(int id, {required String description}) {
     final oldTask = db.firstWhere((element) => element.id == id);
 
@@ -47,10 +61,12 @@ class TaskSaving {
     db.add(task);
   }
 
+  @override
   void remove(int id) {
     db.removeWhere((element) => element.id == id);
   }
 
+  @override
   List<TaskEntity> listen(){
     return db;
   }
@@ -68,13 +84,23 @@ void main() {
   });
 
   group("Tarefa", () {
-    test("Deve conseguir ser salvar", () {
+
+    test("deve conseguir ser salvar", () {
       taskSaving.save(title: title, description: description);
 
       expect(taskSaving.db.length, 1);
       expect(taskSaving.db[0].title, title);
       expect(taskSaving.db[0].description, description);
     });
+
+    test("deve conseguir salvar uma tarefa sem descrição", (){
+      taskSaving.save(title: title);
+
+      expect(taskSaving.db.length, 1);
+      expect(taskSaving.db[0].title, title);
+      expect(taskSaving.db[0].description, null);
+    });
+
 
     test("deve conseguir ser salvar como não concluída", () {
       taskSaving.save(title: title, description: description);
