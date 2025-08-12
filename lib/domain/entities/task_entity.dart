@@ -1,5 +1,3 @@
-import 'package:todo/domain/enum/task_status.dart';
-
 import '../seedWork/entity.dart';
 
 class TaskEntity extends Entity{
