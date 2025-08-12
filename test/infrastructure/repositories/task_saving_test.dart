@@ -46,11 +46,18 @@ class TaskSaving {
     db.removeWhere((element) => element.id == id);
     db.add(task);
   }
+
+  void remove(int id) {
+    db.removeWhere((element) => element.id == id);
+  }
+  List<TaskEntity> listen(){
+    return db;
+  }
 }
 
 void main() {
   group("Tarefa", () {
-    test("Deve conseguir salvar uma tarefa", () {
+    test("Deve conseguir ser salvar", () {
       final taskSaving = TaskSaving();
       final title = "Estudar Flutter";
       final description = "Estudar Flutter na Udemy";
@@ -62,7 +69,7 @@ void main() {
       expect(taskSaving.db[0].description, description);
     });
 
-    test("Deve salvar uma tarefa como não concluída", () {
+    test("deve conseguir ser salvar como não concluída", () {
       final taskSaving = TaskSaving();
       final title = "Estudar .Net";
       final description = "Estudar Flutter na Udemy";
@@ -87,6 +94,30 @@ void main() {
       expect(taskSaving.db[0].title, title);
       expect(taskSaving.db[0].description, description);
       expect(taskSaving.db[0].completed, true);
+    });
+
+    test("deve conseguir ser removida", () {
+      final taskSaving = TaskSaving();
+      final title = "Estudar .Net";
+      final description = "Estudar Flutter na Udemy";
+
+      taskSaving.save(title: title, description: description);
+      taskSaving.remove(1);
+
+      expect(taskSaving.db.length, 0);
+    });
+
+    test("deve conseguir ser listada", () {
+      final taskSaving = TaskSaving();
+      final title = "Estudar .Net";
+      final description = "Estudar Flutter na Udemy";
+
+      expect(taskSaving.db.length, 0);
+      taskSaving.save(title: title, description: description);
+      final tasks = taskSaving.listen();
+
+
+      expect(taskSaving.db.length, tasks.length);
     });
   });
 
@@ -270,4 +301,7 @@ void main() {
       },
     );
   });
+
+
+
 }
