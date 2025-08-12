@@ -50,18 +50,25 @@ class TaskSaving {
   void remove(int id) {
     db.removeWhere((element) => element.id == id);
   }
+
   List<TaskEntity> listen(){
     return db;
   }
 }
 
 void main() {
+  late TaskSaving taskSaving;
+  late String title;
+  late String description;
+
+  setUp((){
+    taskSaving = TaskSaving();
+    title = "Estudar Flutter";
+    description = "Estudar Flutter na Udemy";
+  });
+
   group("Tarefa", () {
     test("Deve conseguir ser salvar", () {
-      final taskSaving = TaskSaving();
-      final title = "Estudar Flutter";
-      final description = "Estudar Flutter na Udemy";
-
       taskSaving.save(title: title, description: description);
 
       expect(taskSaving.db.length, 1);
@@ -70,10 +77,6 @@ void main() {
     });
 
     test("deve conseguir ser salvar como não concluída", () {
-      final taskSaving = TaskSaving();
-      final title = "Estudar .Net";
-      final description = "Estudar Flutter na Udemy";
-
       taskSaving.save(title: title, description: description);
 
       expect(taskSaving.db.length, 1);
@@ -83,11 +86,8 @@ void main() {
     });
 
     test("Deve conseguir alterar o status de uma tarefa", () {
-      final taskSaving = TaskSaving();
-      final title = "Estudar .Net";
-      final description = "Estudar Flutter na Udemy";
+      taskSaving.save(title: title, description: description);
 
-      final taskId = taskSaving.save(title: title, description: description);
       taskSaving.updateStatus(id: 1);
 
       expect(taskSaving.db.length, 1);
@@ -97,25 +97,18 @@ void main() {
     });
 
     test("deve conseguir ser removida", () {
-      final taskSaving = TaskSaving();
-      final title = "Estudar .Net";
-      final description = "Estudar Flutter na Udemy";
-
       taskSaving.save(title: title, description: description);
+
       taskSaving.remove(1);
 
       expect(taskSaving.db.length, 0);
     });
 
     test("deve conseguir ser listada", () {
-      final taskSaving = TaskSaving();
-      final title = "Estudar .Net";
-      final description = "Estudar Flutter na Udemy";
-
       expect(taskSaving.db.length, 0);
       taskSaving.save(title: title, description: description);
-      final tasks = taskSaving.listen();
 
+      final tasks = taskSaving.listen();
 
       expect(taskSaving.db.length, tasks.length);
     });
@@ -123,11 +116,8 @@ void main() {
 
   group("Campo título da tarefa", () {
     test("deve conseguir alterar o título", () {
-      final taskSaving = TaskSaving();
-      final title = "Estudar .Net";
-      final description = "Estudar Flutter na Udemy";
-
       taskSaving.save(title: title, description: description);
+
       taskSaving.updateTitle(1, name: "Estudar Flutter");
 
       expect(taskSaving.db.length, 1);
@@ -137,9 +127,6 @@ void main() {
     });
 
     test("deve retornar um erro caso tente salvar com o valor vazio", () {
-      final taskSaving = TaskSaving();
-      final description = "Estudar Flutter na Udemy";
-
       expect(
         () => taskSaving.save(title: "", description: description),
         throwsException,
@@ -151,10 +138,6 @@ void main() {
     });
 
     test("deve retornar um erro caso tente atualizar com um campo vazio", () {
-      final taskSaving = TaskSaving();
-      final title = "Estudar .Net";
-      final description = "Estudar Flutter na Udemy";
-
       taskSaving.save(title: title, description: description);
 
       expect(() => taskSaving.updateTitle(1, name: ""), throwsException);
@@ -163,9 +146,6 @@ void main() {
 
 
     test("deve retornar um erro caso tente salvar uma tarefa com o título tendo mais de 20 caractere", () {
-      final taskSaving = TaskSaving();
-      final description = "Estudar Flutter na Udemy";
-
       expect(
             () => taskSaving.save(title: "000000000000000000000000", description: description),
         throwsException,
@@ -173,10 +153,6 @@ void main() {
     });
 
     test("deve retornar um erro caso tente atualizar o título com mais de 20 caractere", () {
-      final taskSaving = TaskSaving();
-      final title = "Estudar .Net";
-      final description = "Estudar Flutter na Udemy";
-
       taskSaving.save(title: title, description: description);
 
       expect(
@@ -186,10 +162,6 @@ void main() {
     });
 
     test("deve modifcar o status para false caso altere o título", () {
-      final taskSaving = TaskSaving();
-      final title = "Estudar .Net";
-      final description = "Estudar Flutter na Udemy";
-
       taskSaving.save(title: title, description: description);
       taskSaving.updateStatus(id: 1);
 
@@ -202,10 +174,6 @@ void main() {
     });
 
     test("deve está alterando a data de atualização apos modificar o título",  () {
-        final taskSaving = TaskSaving();
-        final title = "Estudar .Net";
-        final description = "Estudar Flutter na Udemy";
-
         final beforeUpdate = DateTime.now();
         taskSaving.save(title: title, description: description);
         taskSaving.updateTitle(1, name: "Estudar Flutter");
@@ -215,6 +183,7 @@ void main() {
         expect(taskSaving.db[0].title, "Estudar Flutter");
         expect(taskSaving.db[0].description, description);
         expect(taskSaving.db[0].completed, false);
+        expect(taskSaving.db[0].updateAt!.isBefore(afterUpdate), true);
         expect(taskSaving.db[0].updateAt!.isAfter(beforeUpdate), true);
       },
     );
@@ -222,10 +191,6 @@ void main() {
 
   group("Campo de descrição da tarefa", () {
     test("deve conseguir alterar o descrição", () {
-      final taskSaving = TaskSaving();
-      final title = "Estudar .Net";
-      final description = "Estudar Flutter na Udemy";
-
       taskSaving.save(title: title, description: description);
       taskSaving.updateDescription(1, description: "Estudar Flutter");
 
@@ -236,9 +201,6 @@ void main() {
     });
 
     test("deve retornar um erro caso tente salvar com o valor vazio", () {
-      final taskSaving = TaskSaving();
-      final title = "Estudar .Net";
-
       expect(
             () => taskSaving.save(title: title, description: ""),
         throwsException,
@@ -250,10 +212,6 @@ void main() {
     });
 
     test("deve retornar um erro caso o descrição seja vazio", () {
-      final taskSaving = TaskSaving();
-      final title = "Estudar .Net";
-      final description = "Estudar Flutter na Udemy";
-
       taskSaving.save(title: title, description: description);
 
       expect(
@@ -267,10 +225,6 @@ void main() {
     });
 
     test("deve modifcar o status para false caso altere o descrição", () {
-      final taskSaving = TaskSaving();
-      final title = "Estudar .Net";
-      final description = "Estudar Flutter na Udemy";
-
       taskSaving.save(title: title, description: description);
       taskSaving.updateStatus(id: 1);
 
@@ -283,10 +237,6 @@ void main() {
     });
 
     test("deve está alterando a data de atualização apos modificar o descrição", () {
-        final taskSaving = TaskSaving();
-        final title = "Estudar .Net";
-        final description = "Estudar Flutter na Udemy";
-
         final beforeUpdate = DateTime.now();
         taskSaving.save(title: title, description: description);
         taskSaving.updateDescription(1, description: "Estudar Flutter");
@@ -301,7 +251,4 @@ void main() {
       },
     );
   });
-
-
-
 }
