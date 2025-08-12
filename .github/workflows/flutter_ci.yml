@@ -1,0 +1,62 @@
+name: Flutter CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - 'release/**'
+      - 'hotfix/**'
+      - 'feature/**'
+  pull_request:
+    branches:
+      - main
+      - develop
+      - 'release/**'
+      - 'hotfix/**'
+      - 'feature/**'
+
+jobs:
+  flutter-ci:
+    name: Verificar código Flutter
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🔄 Checkout do repositório
+        uses: actions/checkout@v3
+
+      - name: 💾 Configurar Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.x'
+
+      - name: 📦 Instalar dependências
+        run: flutter pub get
+
+      - name: 🎯 Análise estática
+        run: flutter analyze
+
+      - name: 🧪 Rodar testes com cobertura
+        run: flutter test --coverage
+
+      - name: ✅ Validar cobertura mínima (70%)
+        if: |
+          startsWith(github.ref, 'refs/heads/main') ||
+          startsWith(github.ref, 'refs/heads/develop') ||
+          startsWith(github.ref, 'refs/heads/release/') ||
+          startsWith(github.ref, 'refs/heads/hotfix/')
+        run: |
+          lf=$(grep -o 'LF:[0-9]\+' coverage/lcov.info | cut -d':' -f2 | paste -sd+ - | bc)
+          lh=$(grep -o 'LH:[0-9]\+' coverage/lcov.info | cut -d':' -f2 | paste -sd+ - | bc)
+          
+          if [ "$lf" -eq 0 ]; then
+            echo "❌ Nenhuma linha encontrada no relatório de cobertura. Certifique-se de que os testes estão gerando cobertura corretamente."
+            exit 1
+          fi
+          
+          coverage=$(awk "BEGIN { printf \"%.2f\", ($lh / $lf) * 100 }")
+          echo "Cobertura atual: $coverage%"
+          
+          threshold=70
+          awk -v cov=$coverage -v th=$threshold \
+            'BEGIN { if (cov < th) { print "❌ Cobertura abaixo do mínimo exigido (" th "%)"; exit 1 } else { print "✅ Cobertura suficiente" } }'
