@@ -1,5 +1,6 @@
 import 'package:todo/domain/entities/task_entity.dart';
-import 'package:todo/domain/rules/task_rules.dart';
+
+import '../../application/rules/task_rules.dart';
 
 extension TaskEntityMap on TaskEntity {
   TaskRules toTaskRules(){

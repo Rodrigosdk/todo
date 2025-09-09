@@ -1,6 +1,6 @@
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:todo/domain/rules/task_rules.dart';
+import 'package:todo/application/rules/task_rules.dart';
 
 void main() {
   group('Regras de negócio da tarefa', () {
@@ -12,7 +12,6 @@ void main() {
         title: 'Fazer testes',
         description: 'Descrição ok',
         completed: false,
-        createAt: now,
       );
 
       final result = task.save();
@@ -21,7 +20,6 @@ void main() {
       expect(result.title, task.title);
       expect(result.description, task.description);
       expect(result.completed, task.completed);
-      expect(result.createAt, task.createAt);
     });
 
     test('deve lançar exceção se título for vazio', () {
@@ -48,6 +46,34 @@ void main() {
       expect(() => task.save(), throwsException);
     });
 
+    test('deve salvar o id como 0 caso não seja passado', () {
+      final task = TaskRules(
+        title: 'a',
+        description: 'Descrição',
+      );
+
+      final result = task.save();
+
+      expect(result.id, 0);
+      expect(result.title, task.title);
+      expect(result.description, task.description);
+    });
+
+    test('deve salvar como completed false', () {
+      final task = TaskRules(
+        title: 'a',
+        description: 'Descrição',
+        completed: true
+      );
+
+      final result = task.save();
+
+      expect(result.id, 0);
+      expect(result.title, task.title);
+      expect(result.description, task.description);
+      expect(result.completed, false);
+    });
+
     test('alterStatusCompleted() deve inverter o status', () {
       final task = TaskRules(
         id: 1,
@@ -61,6 +87,28 @@ void main() {
 
       expect(updated.completed, isTrue);
       expect(updated.id, task.id);
+    });
+
+    test('alterStatusCompleted() deve retornar um erro caso a data de criação não tenha sido informada', () {
+      final task = TaskRules(
+        id: 1,
+        title: 'Tarefa',
+        description: 'Descrição',
+        completed: false,
+      );
+
+      expect(() => task.alterStatusCompleted(), throwsException);
+    });
+
+    test('alterStatusCompleted() deve retornar um erro caso a data o completed não tenha sido informada', () {
+      final task = TaskRules(
+        id: 1,
+        title: 'Tarefa',
+        description: 'Descrição',
+        createAt: now
+      );
+
+      expect(() => task.alterStatusCompleted(), throwsException);
     });
 
     test('alterTitle() deve atualizar o título e manter outros campos', () {
@@ -93,6 +141,18 @@ void main() {
       expect(() => task.alterTitle('a' * 21), throwsException);
     });
 
+    test('alterTitle() deve lançar exceção se título a data de criação não tenha sido informada', () {
+      final task = TaskRules(
+        id: 1,
+        title: 'Título',
+        description: 'Descrição',
+        completed: false,
+      );
+
+      expect(() => task.alterTitle(" "), throwsException);
+    });
+
+
     test('alterDescription() deve atualizar a descrição', () {
       final task = TaskRules(
         id: 1,
@@ -107,18 +167,6 @@ void main() {
       expect(updated.description, 'Nova descrição');
       expect(updated.title, task.title);
       expect(updated.updateAt, isNotNull);
-    });
-
-    test('alterDescription() deve lançar exceção se descrição for inválida', () {
-      final task = TaskRules(
-        id: 1,
-        title: 'Tarefa',
-        description: 'Descrição antiga',
-        completed: false,
-        createAt: now,
-      );
-
-      expect(() => task.alterDescription('   '), throwsException);
     });
   });
 }
